@@ -161,9 +161,75 @@ For deep technical details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
     -- Diff Integration
     diff_opts = {
-      auto_close_on_accept = true,
-      vertical_split = true,
-      open_in_current_tab = true,
+      auto_close_on_accept = true,              -- Close diff view after accepting changes
+      show_diff_stats = true,                   -- Show diff statistics
+      vertical_split = true,                    -- Use vertical split for diffs
+      open_in_current_tab = true,               -- Open diffs in current tab vs new tab
+    },
+  },
+}
+```
+
+</details>
+
+### Configuration Options Explained
+
+#### Server Options
+
+- **`port_range`**: Port range for the WebSocket server that Claude connects to
+- **`auto_start`**: Whether to automatically start the integration when Neovim starts
+- **`terminal_cmd`**: Override the default "claude" command (useful for custom Claude installations)
+- **`log_level`**: Controls verbosity of plugin logs
+
+#### Selection Tracking
+
+- **`track_selection`**: Enables real-time selection updates sent to Claude
+- **`visual_demotion_delay_ms`**: Time to wait before switching from visual selection to cursor position tracking
+
+#### Connection Management
+
+- **`connection_wait_delay`**: Prevents overwhelming Claude with rapid @ mentions after connection
+- **`connection_timeout`**: How long to wait for Claude to connect before giving up
+- **`queue_timeout`**: How long to keep queued @ mentions before discarding them
+
+#### Terminal Configuration
+
+- **`split_side`**: Which side to open the terminal split (`"left"` or `"right"`)
+- **`split_width_percentage`**: Terminal width as a fraction of screen width (0.1 = 10%, 0.5 = 50%)
+- **`provider`**: Terminal implementation to use:
+  - `"auto"`: Try snacks.nvim, fallback to native
+  - `"snacks"`: Force snacks.nvim (requires folke/snacks.nvim)
+  - `"native"`: Use built-in Neovim terminal
+  - `"external"`: Use external terminal (e.g., tmux, separate terminal window)
+- **`show_native_term_exit_tip`**: Show help text for exiting native terminal
+- **`auto_close`**: Automatically close terminal when commands finish
+
+#### Diff Options
+
+- **`auto_close_on_accept`**: Close diff view after accepting changes with `:w` or `<leader>aa`
+- **`show_diff_stats`**: Display diff statistics (lines added/removed)
+- **`vertical_split`**: Use vertical split layout for diffs
+- **`open_in_current_tab`**: Open diffs in current tab instead of creating new tabs
+
+### Example Configurations
+
+#### Minimal Configuration
+
+```lua
+{
+  "coder/claudecode.nvim",
+  keys = {
+    { "<leader>a", nil, desc = "AI/Claude Code" },
+    { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+    { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
+    { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume Claude" },
+    { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
+    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+    {
+      "<leader>as",
+      "<cmd>ClaudeCodeTreeAdd<cr>",
+      desc = "Add file",
+      ft = { "NvimTree", "neo-tree", "oil" },
     },
   },
   keys = {
@@ -174,11 +240,77 @@ For deep technical details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 </details>
 
+#### External Terminal Configuration
+
+If you prefer to run Claude Code in an external terminal (e.g., tmux, separate terminal window), configure the plugin to use the external provider and load on startup:
+
+```lua
+{
+  "coder/claudecode.nvim",
+  event = "VeryLazy",  -- Load on startup for auto-start behavior
+  opts = {
+    terminal = {
+      provider = "external",  -- Don't launch internal terminals
+    },
+  },
+  keys = {
+    { "<leader>a", nil, desc = "AI/Claude Code" },
+    -- Add any keymaps you want (but they're not required for loading)
+    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+    {
+      "<leader>as",
+      "<cmd>ClaudeCodeTreeAdd<cr>",
+      desc = "Add file",
+      ft = { "NvimTree", "neo-tree", "oil" },
+    },
+    -- Diff management
+    { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+    { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+  },
+}
+```
+
+With this configuration:
+
+- The MCP server starts automatically when Neovim loads
+- Run `claude --ide` in your external terminal to connect
+- Use `:ClaudeCodeStatus` to check connection status and get guidance
+
+#### Custom Claude Installation
+
+```lua
+{
+  "coder/claudecode.nvim",
+  keys = {
+    { "<leader>a", nil, desc = "AI/Claude Code" },
+    { "<leader>ac", "<cmd>ClaudeCode<cr>", desc = "Toggle Claude" },
+    { "<leader>af", "<cmd>ClaudeCodeFocus<cr>", desc = "Focus Claude" },
+    { "<leader>ar", "<cmd>ClaudeCode --resume<cr>", desc = "Resume Claude" },
+    { "<leader>aC", "<cmd>ClaudeCode --continue<cr>", desc = "Continue Claude" },
+    { "<leader>as", "<cmd>ClaudeCodeSend<cr>", mode = "v", desc = "Send to Claude" },
+    {
+      "<leader>as",
+      "<cmd>ClaudeCodeTreeAdd<cr>",
+      desc = "Add file",
+      ft = { "NvimTree", "neo-tree", "oil" },
+    },
+    -- Diff management
+    { "<leader>aa", "<cmd>ClaudeCodeDiffAccept<cr>", desc = "Accept diff" },
+    { "<leader>ad", "<cmd>ClaudeCodeDiffDeny<cr>", desc = "Deny diff" },
+  },
+  opts = {
+    terminal_cmd = "/opt/claude/bin/claude",  -- Custom Claude path
+    port_range = { min = 20000, max = 25000 }, -- Different port range
+  },
+}
+```
+
 ## Troubleshooting
 
 - **Claude not connecting?** Check `:ClaudeCodeStatus` and verify lock file exists in `~/.claude/ide/` (or `$CLAUDE_CONFIG_DIR/ide/` if `CLAUDE_CONFIG_DIR` is set)
 - **Need debug logs?** Set `log_level = "debug"` in opts
 - **Terminal issues?** Try `provider = "native"` if using snacks.nvim
+- **Auto-start not working?** If using external terminal provider, ensure you're using `event = "VeryLazy"` instead of `keys = {...}` only, as lazy loading prevents auto-start from running
 
 ## Contributing
 
