@@ -87,7 +87,27 @@ That's it! The plugin will auto-configure everything else.
    - Show diffs with proposed changes
    - Access diagnostics and workspace info
 
-## Key Commands
+## Commands
+
+- `:ClaudeCode [arguments]` - Toggle the Claude Code terminal window (simple show/hide behavior)
+- `:ClaudeCodeFocus [arguments]` - Smart focus/toggle Claude terminal (switches to terminal if not focused, hides if focused)
+- `:ClaudeCodeTmux [arguments]` - Open Claude Code in a tmux pane (works regardless of terminal provider setting)
+- `:ClaudeCode --resume` - Resume a previous Claude conversation
+- `:ClaudeCode --continue` - Continue Claude conversation
+- `:ClaudeCodeSend` - Send current visual selection to Claude, or add files from tree explorer
+- `:ClaudeCodeTreeAdd` - Add selected file(s) from tree explorer to Claude context (also available via ClaudeCodeSend)
+- `:ClaudeCodeAdd <file-path> [start-line] [end-line]` - Add a specific file or directory to Claude context by path with optional line range
+- `:ClaudeCodeDiffAccept` - Accept the current diff changes (equivalent to `<leader>aa`)
+- `:ClaudeCodeDiffDeny` - Deny/reject the current diff changes (equivalent to `<leader>ad`)
+
+### Toggle Behavior
+
+- **`:ClaudeCode`** - Simple toggle: Always show/hide terminal regardless of current focus
+- **`:ClaudeCodeFocus`** - Smart focus: Focus terminal if not active, hide if currently focused
+
+### Tree Integration
+
+The `<leader>as` keybinding has context-aware behavior:
 
 - `:ClaudeCode` - Toggle the Claude Code terminal window
 - `:ClaudeCodeFocus` - Smart focus/toggle Claude terminal
@@ -179,6 +199,7 @@ For deep technical details, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 - **Claude not connecting?** Check `:ClaudeCodeStatus` and verify lock file exists in `~/.claude/ide/` (or `$CLAUDE_CONFIG_DIR/ide/` if `CLAUDE_CONFIG_DIR` is set)
 - **Need debug logs?** Set `log_level = "debug"` in opts
 - **Terminal issues?** Try `provider = "native"` if using snacks.nvim
+- **Auto-start not working?** If using external terminal provider, ensure you're using `event = "VeryLazy"` instead of `keys = {...}` only, as lazy loading prevents auto-start from running
 
 ## Contributing
 
